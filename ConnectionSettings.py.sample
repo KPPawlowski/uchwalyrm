@@ -1,0 +1,2 @@
+class ConnectionSettings:
+        m_paramValues = {'mysql': {'user': '', 'password': '', 'db_host': '', 'db_name': ''}, 'pgsql': {'user': '', 'password': '', 'db_host': '', 'db_name': ''}};
