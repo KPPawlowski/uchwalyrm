@@ -1,0 +1,4 @@
+Options +Indexes
+IndexOptions +FancyIndexing
+RewriteEngine On
+RewriteRule ^([a-zA-Z0-9_\-\/]*+)$ /index.php?path=$1 [L]

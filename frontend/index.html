@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pl" xml:lang="en" ng-app="uchwalyApp">
+
+    <head>
+        <meta charset="utf-8" />  
+        <title>Przeglądarka uchwał Rady Miejskiej w Złotoryi</title>  
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <meta http-equiv="content-language" content="pl" />
+        <meta name="keywords" content="Złotoryja, Uchwały Rady Miejskiej w Złotoryi, Rada Miejska w Złotoryi, Urząd Miejski w Złotoryi, budżet" />
+        <meta name="author" content="Kacper Pawłowski" />
+        <meta name="robots" content="index, follow, all" />
+        <meta name="expires" content="0" />
+        <meta name="revisit-after" content="1 days" />
+        <meta name="owner" content="Urząd Miejski w Złotoryi" />
+
+        <!-- Styles -->
+        <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+        <link rel="stylesheet" href="bower_components/angular-material/dist/css/angular-material.css" />
+        <link href="bower_components/angular-notify/dist/angular-notify.css" rel="stylesheet" />	  
+        <!-- Scripts - JavaScripts Frameworks (CDN)-->
+        <script src="bower_components/jquery/dist/jquery.js"></script>
+        <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="bower_components/angular/angular.min.js"></script>
+        <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+        <script src="bower_components/angular-animate/angular-animate.js"></script>
+        <script src="bower_components/angular-aria/angular-aria.js"></script>
+        <script src="bower_components/angular-messages/angular-messages.js"></script>
+        <script src="bower_components/angular-notify/dist/angular-notify.js"></script>
+        <script src="bower_components/angular-promise-tracker/promise-tracker.js"></script>
+        <script src="bower_components/angular-promise-tracker/promise-tracker-http-interceptor.js"></script>
+        <script src="bower_components/ng-csv/build/ng-csv.js"></script>
+        <!-- Angular Material Library -->
+        <script src="bower_components/angular-material/angular-material.js"></script>
+        <!-- Scripts - own -->
+        <script src="controllers.js"></script>
+
+
+    </head>
+    <body ng-controller="UchwalyCtrl as ctrl" ng-keydown="keydown($event)">
+        <nav class="navbar navbar-default navbar-fixed-bottom" data-spy="affix">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a class="navbar-brand"><span class="glyphicon glyphicon-home" aria-hidden="true" ng-click="reset()"></span> LEX.ZLOTORYJA.PL <span ng-class="menuShow ? 'glyphicon glyphicon-menu-up' : 'glyphicon glyphicon-menu-down'" aria-hidden="true" ng-click="toggleMenu()"></span></a>
+                </div>
+                <ul class="nav navbar-nav">
+                    <li ng-show="menuShow"><a ng-click="toggleSearch()"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></a></li>
+                    <li ng-show="showSearch"><input type="text" ng-model="searchTextField" ng-change="searchLex()" class="form-control" placeholder="Wpisz nazwę, tag lub numer uchwały" aria-describedby="sizing-addon3"></li>
+                    <li ng-show="showSearch"><a href="#"><span class="glyphicon glyphicon-calendar" aria-hidden="true"></span></a></li>
+                    <li ng-show="showSearch"><select aria-describedby="sizing-addon3" class="form-control" id="wybor_daty" ng-model="searchDateField" ng-change="searchLex()"><option value="">Wybierz datę uchwalenia</option><option ng-repeat="option in dates">{{option}}</option></select></li>
+                    <li ng-show="menuShow"><a ng-click="goToAuthorPage()"><span class="glyphicon glyphicon-envelope" aria-hidden="true"></span></a></li>
+                    <li ng-show="menuShow && showAct"><a ng-click="showAct = false"><span class="glyphicon glyphicon-th-list" aria-hidden="true"></span></a></li>
+                    <li ng-show="menuShow && !showAct && actNo"><a ng-click="showAct = true"><span class="glyphicon glyphicon-file" aria-hidden="true"></span></a></li>
+                    <li ng-show="showAct && menuShow"><a ng-click="print()"><span class="glyphicon glyphicon-print" aria-hidden="true"></span></a></li>
+                    <li ng-show="menuShow"><a data-toggle="modal" data-target="#Instruction"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></a></li>
+                    <li ng-show="showAct && menuShow"><a ng-click="linkedActs(-1)"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></a></li>
+                    <li ng-show="showAct && menuShow"><a ng-click="linkedActs(1)"><span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span></a></li>
+                    <li ng-show="showAct && menuShow"><a ng-click="goToBIP()"><span class="glyphicon glyphicon-globe" aria-hidden="true"></span></a></li>
+                    <li ng-show="menuShow && !showAct"><a ng-csv="list" filename="list.csv"><span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span></a></li>
+                </ul>
+            </div>
+
+
+        </nav>
+
+        <div id="Instruction" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h2 class="modal-title">Instrukcja</h2>
+                    </div>
+                    <div class="modal-body">
+                        <h4>Instrukcja obsługi</h4>
+                        <p>Kliknij na uchwałę z listy aby zajrzeć w jej szczegóły, następnie możesz używać następujących skrotów klawiaturowych do obsługi:<br /><br /><kbd>&lt;-</kbd> poprzednie uchwały (ikonka) <kbd>-&gt;</kbd> następne uchwały (ikonka) <kbd>S</kbd> resetowanie wyszukiwania (ikonka)<br /><br /><kbd>B</kbd> otwórz uchwałę na BIP (nowa karta) <kbd>P</kbd> zobacz protokół <kbd>G</kbd> zobacz głosowania <kbd>I</kbd> informacje podstawowe <kbd>T</kbd> treść uchwały<br /><br />
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-danger" role="alert" ng-show="error">
+            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            <span class="sr-only">Błąd:</span>
+            {{errorMsg}}
+        </div>   
+        <div class="container">
+            <h1>{{sitename}}</h1>
+            <blockquote ng-bind-html="text"></blockquote>
+        </div>
+
+
+        <div class="container" id="uchwaly" ng-if="!showAct">
+            <div class="my-super-awesome-loading-box" ng-show="loadingTracker.active()"><div align="center"><h1>Ładowanie aplikacji...</h1></div></div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered table-striped" id="lista_uchwala">
+                    <thead>
+                        <tr>
+                            <td nagl-sort type="DataUchwalenia" text="Uchwalono"></td>
+                            <td nagl-sort type="NumerUchwaly" text="Numer&nbsp;Uchwały"></td>
+                            <td nagl-sort type="Tytul" text="Tytuł"></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        Wyszukano: <strong>{{results.length}}</strong> uchwał
+                        <tr ng-repeat="row in list| filter:{DataUchwalenia: searchDateField} | filter:searchTextField | orderBy: ord as results" ng-if="isOnLimitedList(row.NumerUchwaly)" ng-click="openAct(row.NumerUchwaly)">
+                            <td>{{row.DataUchwalenia}}</td>
+                            <td>{{row.NumerUchwaly}}</p></td>
+                            <td>{{row.Tytul}}<!-- {{row.Tagi}} !--></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <br /><br />
+        </div>
+        <div class="container" ng-if="showAct">
+            <div>
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a ng-click="lexOption = 1" aria-controls="tresc" role="tab" data-toggle="tab">Treść uchwały</a></li>
+                    <li role="presentation"><a ng-click="lexOption = 2" aria-controls="informacje" role="tab" data-toggle="tab">Szczegóły</a></li>
+                    <li role="presentation"><a ng-click="lexOption = 3" aria-controls="glosowania" role="tab" data-toggle="tab">Głosowania</a></li>
+                    <li role="presentation"><a ng-click="lexOption = 4" aria-controls="protokol" role="tab" data-toggle="tab">Protokół</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div ng-show="lexOption <= 1">
+                        <p>
+                            <div ng-bind-html="actContentHTML" align="justify"></div>						
+                            <div ng-bind-html="actAttachmentsHTML" align="justify"></div>
+                        </p>
+                    </div>
+                    <div ng-show="lexOption == 2">
+                        <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                        <div ng-if="content.AdresPublikacyjny"><div><p><strong>Adres publikacyjny:</strong></p></div><div><p><a href="{{content.AdrPubURL}}">{{content.AdresPublikacyjny}}</a></p></div></div>
+                        <div ng-if="content.TekstJednolity"><div><p><strong>Tekst jednolity:</strong></p></div><div><p><a href="{{content.TekstJednURL}}">{{content.TekstJednolity}}</a></p></div></div>
+			<div ng-if="content.Ogloszony"><div><p><strong>Ogłoszony:</strong></p></div><div><p>{{content.Ogloszony}}</p></div></div>
+			<div ng-if="content.WchodziWZycie"><div><p><strong>Wejście w życie:</strong></p></div><div><p>{{content.WchodziWZycie}}</p></div></div>
+			<div ng-if="content.PodstawaPrawna"><div><p><strong>Podstawa prawna:</strong></p></div><div><p>{{content.PodstawaPrawna}}</p></div></div>
+                        <div ng-if="content.RNAU"><div><p><strong>Rozstrzygnięcie nadzorcze/akt derogujący:</strong></p></div><div><p>{{content.RNAU}}</p></div></div>
+                        <div ng-if="content.ZmienionaPrzez[0]"><div><p><strong>Zmieniona przez uchwałę:</strong></p></div><div><p ng-repeat="row in content.ZmienionaPrzez" ng-click="openAct(row[0])">{{row[0]}}</p></div></div>
+                        <div ng-if="content.UchylonaPrzez[0]"><div><p><strong>Uchylona przez uchwałę:</strong></p></div><div><p ng-repeat="row in content.UchylonaPrzez" ng-click="openAct(row[0])">{{row[0]}}</p></div></div>
+                        <div ng-if="content.ZmieniaUchwale"><div><p><strong>Zmienia uchwałę:</strong></p></div><div><p ng-repeat="row in content.ZmieniaUchwale" ng-click="openAct(row)">{{row}}</p></div></div>
+                        <div ng-if="content.UchylaUchwale"><div><p><strong>Uchyla uchwałę:</strong></p></div><div><p ng-repeat="row in content.UchylaUchwale" ng-click="openAct(row)">{{row}}</p></div></div>
+                        <div ng-if="content.Tagi"><div><p><strong>Tagi:</strong></p></div><div><p ng-repeat="row in content.Tagi" ng-click="changeSearch(row)">{{row}}</p></div></div>	
+                    </div>
+                    <div ng-show="lexOption == 3">
+                        <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                        <div ng-if="content.Za"><div><p><strong>Za ({{content.Za}})</strong></p></div>
+                            <div><p ng-repeat="row in content.KtoZa">{{row}}</p></div></div>
+                        <div ng-if="content.Przeciw > 0"><p><div><strong>Przeciw ({{content.Przeciw}})</strong></p></div><div><p ng-repeat="row in content.KtoPrzeciw">{{row}}</p></div></div>
+                    <div ng-if="content.Wstrzymujacy > 0"><p><div><strong>Wstrzymujący się ({{content.Wstrzymujacy}})</strong></p></div><div><p ng-repeat="row in content.KtoWstrzymujacy">{{row}}</p></div></div>
+                <div ng-if="content.KtoNieobecny"><p><div><strong>Nieobecni ({{content.Nieobecni}})</strong></p></div><div><p ng-repeat="row in content.KtoNieobecny">{{row}}</p></div></div>
+        </div>
+        <div ng-show="lexOption == 4">
+            <p>
+                <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                <div ng-bind-html="actProtocolHTML"></div>
+                <div ng-bind-html="actProtocolAttachmentsHTML"></div>
+            </p>
+        </div>
+        <br /><br /><br /><br /><br />
+    </body>
+</html>
