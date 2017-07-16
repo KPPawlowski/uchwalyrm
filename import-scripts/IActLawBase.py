@@ -82,7 +82,6 @@ class IActLawBase:
             p_connection.commit()
             cursor.close()
             return False
-        p_connection.commit()
         cursor.close()
         return True
 
@@ -100,31 +99,22 @@ class IActLawBase:
     def to_date(p_str):
         date_pattern = re.compile("([0-9]+) (\w+) ([0-9]+)")
         date_array = date_pattern.findall(p_str)[0]
-        s_mc = date_array[1].lower().strip()
-        if s_mc == "stycznia":
-            l_mc = 1
-        elif s_mc == "lutego":
-            l_mc = 2
-        elif s_mc == "marca":
-            l_mc = 3
-        elif s_mc == "kwietnia":
-            l_mc = 4
-        elif s_mc == "maja":
-            l_mc = 5
-        elif s_mc == "czerwca":
-            l_mc = 6
-        elif s_mc == "lipca":
-            l_mc = 7
-        elif s_mc == "sierpnia":
-            l_mc = 8
-        elif s_mc == "września":
-            l_mc = 9
-        elif s_mc == "października":
-            l_mc = 10
-        elif s_mc == "listopada":
-            l_mc = 11
-        elif s_mc == "grudnia":
-            l_mc = 12
-        else:
-            l_mc = 0
-        return date_array[2] + "-" + str(l_mc).zfill(2) + "-"  + (date_array[0]).zfill(2)
+        months_dict = {"stycznia": 1,
+                       "lutego": 2,
+                       "marca": 3,
+                       "kwietnia": 4,
+                       "maja": 5,
+                       "czerwca": 6,
+                       "lipca": 7,
+                       "sierpnia": 8,
+                       "września": 9,
+                       "października": 10,
+                       "listopada": 11,
+                       "grudnia": 12}
+        month_string = date_array[1].lower().strip()
+        month_no = months_dict.get(month_string)
+
+        if not month_no:
+            month_no = 0
+
+        return date_array[2] + "-" + str(month_no).zfill(2) + "-"  + (date_array[0]).zfill(2)
