@@ -27,7 +27,7 @@ class UchwalyRM(IActLawBase):
         self.database_connection = self.create_connection(p_dbms, p_param_values)
         self.acts_links_regular_expression = re.compile("<td><a .*?href='(dokument\.php\?iddok\=[0-9]+)"
                                                         ".*?' .*?>(.*)</a></td>")
-        self.acts_title_regular_expression = re.compile("^(Uchwała|UCHWAŁA) (NR|nr|Nr) (.*?) .*? z dnia "
+        self.acts_title_regular_expression = re.compile("^(Uchwała|UCHWAŁA)[ ]*(NR|nr|Nr|)[ ]*(.*?) .*? z dnia "
                                                         "(.*?) r\.(.*?)$")
         self.protocols_item_regular_expression = re.compile("<a.*? href=\'(dokument.php\?iddok\=[0-9]+).*?\'.*?>.*?"
                                                             "([XIVLMCDM]+)[\.\/](20[0-2][0-9]).*?([0-9]{1,2} [a-zA-Z]+ "

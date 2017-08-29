@@ -122,7 +122,8 @@
                     <li role="presentation" class="active"><a ng-click="lexOption = 1" aria-controls="tresc" role="tab" data-toggle="tab">Treść uchwały</a></li>
                     <li role="presentation"><a ng-click="lexOption = 2" aria-controls="informacje" role="tab" data-toggle="tab">Szczegóły</a></li>
                     <li role="presentation"><a ng-click="lexOption = 3" aria-controls="glosowania" role="tab" data-toggle="tab">Głosowania</a></li>
-                    <li role="presentation"><a ng-click="lexOption = 4" aria-controls="protokol" role="tab" data-toggle="tab">Protokół</a></li>
+                    <li role="presentation"><a ng-click="lexOption = 4" aria-controls="uzasadnienie" role="tab" data-toggle="tab">Uzasadnienie</a></li>
+                    <li role="presentation"><a ng-click="lexOption = 5" aria-controls="protokol" role="tab" data-toggle="tab">Protokół</a></li>
                 </ul>
 
                 <div class="tab-content">
@@ -154,13 +155,21 @@
                     <div ng-if="content.Wstrzymujacy > 0"><p><div><strong>Wstrzymujący się ({{content.Wstrzymujacy}})</strong></p></div><div><p ng-repeat="row in content.KtoWstrzymujacy">{{row}}</p></div></div>
                 <div ng-if="content.KtoNieobecny"><p><div><strong>Nieobecni ({{content.Nieobecni}})</strong></p></div><div><p ng-repeat="row in content.KtoNieobecny">{{row}}</p></div></div>
         </div>
-        <div ng-show="lexOption == 4">
+        <div ng-show="lexOption == 5">
             <p>
                 <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
                 <div ng-bind-html="actProtocolHTML"></div>
                 <div ng-bind-html="actProtocolAttachmentsHTML"></div>
             </p>
         </div>
+        <div ng-show="lexOption == 4">
+            <p>
+                <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                <p style="white-space:pre-wrap;">{{content.Uzasadnienie}}</p>
+            </p>
+        </div>
+
+
         <br /><br /><br /><br /><br />
     </body>
 </html>
