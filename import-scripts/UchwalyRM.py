@@ -46,7 +46,9 @@ class UchwalyRM(IActLawBase):
     # @param p_page Strona, z której pobieramy
     def get_acts_list(self, p_page=1):
         acts_list_request = requests.get("%sindex.php" % self.site_url,
-                                         params={'idmp': '308', 'r': 'o', 'istr': str(p_page)})
+                                         params={'idmp': '308',
+                                                 'r': 'o',
+                                                 'istr': str(p_page)})
         self.acts_list[p_page] = self.acts_links_regular_expression.findall(acts_list_request.text)
 
     ## Pobranie listy protokołów z danej strony
@@ -54,7 +56,9 @@ class UchwalyRM(IActLawBase):
     # @param p_page Strona, z której pobieramy
     def get_protocol_list(self, p_page=1):
         protocol_list_request = requests.get("%sindex.php" % self.site_url,
-                                             params={'idmp': '166', 'r': 'o', 'istr': str(p_page)})
+                                             params={'idmp': '166',
+                                                     'r': 'o',
+                                                     'istr': str(p_page)})
         self.protocol_list[p_page] = self.protocols_item_regular_expression.findall(protocol_list_request.text)
 
     ## Dodaje protokół do bazy danych

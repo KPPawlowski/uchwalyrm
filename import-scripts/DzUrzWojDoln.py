@@ -55,7 +55,10 @@ class DzUrzWojDoln(IActLawBase):
         headers.update({'Accept': "application/json, text/plain, */*",
                         'Accept-Encoding': "gzip, deflate, sdch",
                         'Accept-Language' : "pl-PL,pl;q=0.8,en-US;q=0.6,en;q=0.4"})
-        params = ({'year': p_year, 'month': p_month, 'isList': "true", 'Csession': self.csession})
+        params = ({'year': p_year,
+                   'month': p_month,
+                   'isList': "true",
+                   'Csession': self.csession})
         json_request = requests.get(url=self.url + "/api/positions",
                                     params=params,
                                     headers=headers)
@@ -119,6 +122,6 @@ class DzUrzWojDoln(IActLawBase):
                             publisher_name = i_publisher_iterator.get("Name")
                             if publishers.get(publisher_name) is None:
                                 publishers[publisher_name] = []
-                            publishers[l_publisher_name].append(i_position_item)
+                            publishers[publisher_name].append(i_position_item)
             return publishers
         return dict()

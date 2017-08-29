@@ -4,8 +4,10 @@ from ConnectionSettings import *
 import argparse
 
 if __name__ == "__main__":
+
     from DzUrzWojDoln import *
     from UchwalyRM import *
+
     def execute_duw_service(p_log=True):
         if p_log:
             print("Wybrano serwis duw")
@@ -19,18 +21,20 @@ if __name__ == "__main__":
         for i_month in duwd_object.results.get(year).keys():
             duwd_object.insert_db(year, i_month, "pgsql", ConnectionSettings.param_values)
             duwd_object.insert_db(year, i_month, "mysql", ConnectionSettings.param_values)
+
     def execute_rmz_service(p_log=True):
         if p_log:
             print("Wybrano serwis uchwalyRm")
         urm_object = UchwalyRM('mysql', ConnectionSettings.param_values)
         urm_object.log_on = p_log
-        urm_object.get_acts_list(1)
-        urm_object.get_acts_list(2)
-        urm_object.get_protocol_list(1)
-        urm_object.get_protocol_list(2)
-        urm_object.get_protocol_list(3)
+
+        for i in range(1, 4):
+            urm_object.get_acts_list(i)
+            urm_object.get_protocol_list(i)
+
         urm_object.insert_acts()
         urm_object.insert_protocols()
+
     def control():
         l_parser = argparse.ArgumentParser()
         l_parser.add_argument("-s", "--service", help="Legalbase", choices=["duw", "rmz"])
