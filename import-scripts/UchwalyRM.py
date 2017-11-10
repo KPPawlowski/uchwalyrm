@@ -29,8 +29,8 @@ class UchwalyRM(IActLawBase):
                                                         ".*?' .*?>(.*)</a></td>")
         self.acts_title_regular_expression = re.compile("^(Uchwała|UCHWAŁA)[ ]*(NR|nr|Nr|)[ ]*(.*?) .*? z dnia "
                                                         "(.*?) r\.(.*?)$")
-        self.protocols_item_regular_expression = re.compile("<a.*? href=\'(dokument.php\?iddok\=[0-9]+).*?\'.*?>.*?"
-                                                            "([XIVLMCDM]+)[\.\/](20[0-2][0-9]).*?([0-9]{1,2} [a-zA-Z]+ "
+        self.protocols_item_regular_expression = re.compile("<a.*?href=\'(dokument.php\?iddok\=[0-9]+).*?\'.*?>.*?"
+                                                            "([XIVLMCDM]+)[\.\/](20[0-2][0-9]).*?([0-9]{1,2} [a-zA-Zźńś]+ "
                                                             "20[0-9]+).*?</a>",
                                                             re.MULTILINE)
         self.encode_charset = "utf-8"
