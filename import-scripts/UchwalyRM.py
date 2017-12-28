@@ -141,8 +141,8 @@ class UchwalyRM(IActLawBase):
         if not p_parent:
             p_parent = self
         if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL 15 DAY, AdresPublikacyjny = %s "
-                "WHERE NumerUchwaly = %s", (p_publication_date[0:10], p_publication_date[0:10], "DZ. URZ. WOJ. "
-            + str(p_year) + "." + str(p_position), p_case_number)):
+                                               "WHERE NumerUchwaly = %s", (p_publication_date[0:10], p_publication_date[0:10], "DZ. URZ. WOJ. " \
+                                               + str(p_year) + "." + str(p_position), p_case_number)):
             p_parent.log("Zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
         else:
             p_parent.log("Nie zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
