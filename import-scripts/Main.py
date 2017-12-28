@@ -14,8 +14,8 @@ if __name__ == "__main__":
         duwd_object = DzUrzWojDoln()
         duwd_object.log_on = p_log
         year = 2017
-        start_month = 11
-        end_month = 11
+        start_month = 12
+        end_month = 12
         for i_month in range(start_month, end_month+1):
             duwd_object.get_json(year, i_month)
         for i_month in duwd_object.results.get(year).keys():
