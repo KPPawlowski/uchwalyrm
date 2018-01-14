@@ -85,6 +85,16 @@ class IActLawBase:
         cursor.close()
         return True
 
+    @staticmethod
+    def select_sql(p_connection, p_query):
+        cursor = p_connection.cursor(dictionary=True)
+        sql = (p_query)
+        cursor.execute(sql)
+        result = []
+        for row in cursor:
+            result.append(row)
+        return result
+
     ## Zamiana daty w języku polskim na datę SQL
     #
     #  @param p_str Tekst z datą

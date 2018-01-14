@@ -6,6 +6,8 @@
 # coding=utf8
 import re
 import requests
+import time
+import datetime
 from IActLawBase import *
 from UchwalaDetails import *
 
@@ -160,9 +162,30 @@ class UchwalyRM(IActLawBase):
     def update_dzurz_position(p_connection, p_publication_date, p_year, p_position, p_case_number, p_parent=None):
         if not p_parent:
             p_parent = self
-        if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL 15 DAY, AdresPublikacyjny = %s "
-                                               "WHERE NumerUchwaly = %s", (p_publication_date[0:10], p_publication_date[0:10], "DZ. URZ. WOJ. " \
+
+        act_detail = UchwalyRM.get_act_details(p_connection, p_case_number, p_parent)
+        date_start = datetime.datetime.strptime(p_publication_date[0:10], '%Y-%m-%d')
+
+        if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0):
+            date_start = act_detail['DataUchwalenia']
+            date_add = 0
+        elif act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0:
+            if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
+                date_add = 15
+            elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
+                data_add = 31
+
+        if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL " + str(date_add) + " DAY, AdresPublikacyjny = %s "
+                                               "WHERE NumerUchwaly = %s", (p_publication_date[0:10], date_start.strftime('%Y-%m-%d'), "DZ. URZ. WOJ. " \
                                                + str(p_year) + "." + str(p_position), p_case_number)):
             p_parent.log("Zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
         else:
             p_parent.log("Nie zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
+
+    @staticmethod
+    def get_act_details(p_connection, p_act_number, p_parent=None):
+        if not p_parent:
+            p_parent = self
+        result = p_parent.select_sql(p_connection, 
+                                     "SELECT * FROM Uchwaly WHERE NumerUchwaly = '" + p_act_number + "'")
+        return result[0]
