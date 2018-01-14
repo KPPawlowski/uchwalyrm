@@ -7,6 +7,7 @@
 import re
 import requests
 from IActLawBase import *
+from UchwalaDetails import *
 
 ## Klasa do obsługi ostatnich uchwał i protokołów z BIP UM w Złotoryi
 #
@@ -74,9 +75,27 @@ class UchwalyRM(IActLawBase):
     #
     # Dodaje uchwałę do tabeli Uchwaly
     def insert_act(self, p_act_number, p_act_date, p_act_title):
-        return self.execute_sql(self.database_connection,
-                               "INSERT INTO Uchwaly (NumerUchwaly, DataUchwalenia, Tytul) VALUES (%s, %s, %s)",
-                                (p_act_number, p_act_date, p_act_title))
+        result = self.execute_sql(self.database_connection,
+                                 "INSERT INTO Uchwaly (NumerUchwaly, DataUchwalenia, Tytul) VALUES (%s, %s, %s)",
+                                  (p_act_number, p_act_date, p_act_title))
+        self.execute_sql(self.database_connection,
+                         "INSERT INTO UchwalyPodstawaPrawna (NumerUchwaly, PodstawaPrawna) VALUES(%s, %s)",
+                         (p_act_number, ""))
+        return result
+
+    def fill_act_details(self, p_act_number, p_act_date, p_act_url):
+        act = UchwalaDetails()
+        act.get_url(p_act_url)
+        self.execute_sql(self.database_connection,
+                         "UPDATE Uchwaly SET WchodziWZycieTekst = %s, Wykonujacy = %s WHERE NumerUchwaly = %s",
+                          (act.WejscieWZycie, act.Wykonujacy, p_act_number))
+        self.execute_sql(self.database_connection,
+                         "UPDATE UchwalyPodstawaPrawna SET PodstawaPrawna = %s WHERE NumerUchwaly = %s",
+                          (act.PodstawaPrawna, p_act_number))
+        if act.ZDniemPodjecia:
+            self.execute_sql(self.database_connection,
+                            "UPDATE Uchwaly SET WchodziWZycie = %s WHERE NumerUchwaly = %s",
+                            (p_act_date, p_act_number))
 
     ## Dodaje link do uchwały do bazy danych
     #
@@ -108,6 +127,7 @@ class UchwalyRM(IActLawBase):
                     self.log("+ Dodano uchwale %s" % (act[2]))
                 else:
                     self.log("- Nie dodano uchwaly %s" % (act[2]))
+                self.fill_act_details(act[2], self.to_date(act[3]), self.site_url + i_acts_links[0])
                 if self.insert_act_url(act[2], self.site_url + i_acts_links[0]):
                     self.log("+ Dodano link %s" % (act[2]))
                 else:
