@@ -1,6 +1,6 @@
 var uchwalyApp = angular.module('uchwalyApp', ['ngSanitize', 'cgNotify', 'ajoslin.promise-tracker', 'ngCsv']);
 
-uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTracker', function ($scope, $http, notify, promiseTracker) {
+var ctrl = uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTracker', function ($scope, $http, notify, promiseTracker) {
         /* variables */
         $scope.loadingTracker = promiseTracker();
         $scope.limitedList = [];
@@ -52,6 +52,63 @@ uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTrack
             window.print();
         };
 
+        $scope.dataPl = function (data) {
+            if (!data) {
+                return "";
+            }
+            
+            var Rok = data.substr(0,4);
+            var Miesiac = data.substr(5,2);
+            var Dzien = data.substr(8,2);
+            var MiesiacPl = "";
+            
+            switch(Miesiac)
+            {
+                case "01":
+                    MiesiacPl = "stycznia";
+                    break;
+                case "02":
+                    MiesiacPl = "lutego";
+                    break;
+                case "03":
+                    MiesiacPl = "marca";
+                    break;
+                case "04":
+                    MiesiacPl = "kwietnia";
+                    break;
+                case "05":
+                    MiesiacPl = "maja";
+                    break;
+                case "06":
+                    MiesiacPl = "czerwca";
+                    break;
+                case "07":
+                    MiesiacPl = "lipca";
+                    break;
+                case "08":
+                    MiesiacPl = "sierpnia";
+                    break;
+                case "09":
+                    MiesiacPl = "września";
+                    break;
+                case "10":
+                    MiesiacPl = "października";
+                    break;
+                case "11":
+                    MiesiacPl = "listopada";
+                    break;
+                case "12":
+                    MiesiacPl = "grudnia";
+                    break;
+            }
+            
+            if(Dzien[0] == "0") {
+                Dzien = Dzien.substr(1,1);
+            }
+            
+            return Dzien + " " + MiesiacPl + " " + Rok;
+        };
+        
         $scope.toggleInformation = function (data) {
             if (!$scope.showInstruction)
                 $scope.showInstruction = true;
@@ -125,7 +182,27 @@ uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTrack
 
 	$scope.createLinkDUW = function(adr) {
 	    if(adr) {
-		return "http://edzienniki.duw.pl/duw/#/legalact/" + adr.replace("DZ. URZ. WOJ. ","").replace(".", "/").trim();
+		pattern = /([0-9]{4})\.([0-9]+)\.*([0-9]*)/i;
+		no = adr.replace("DZ. URZ. WOJ. ", "").trim();
+		numbers = pattern.exec(no);
+		number = parseInt(numbers[2]);
+		year = parseInt(numbers[1]);
+
+		if(year == 2000) {
+		    return "http://oi.uwoj.wroc.pl/dzienniki/Dzienniki/Dz" + numbers[2] + "/poz" + numbers[3] + "/poz" + numbers[3] + ".html";
+		}
+		else if(year >= 2001 && year <= 2004) {
+		    if((number >= 229 && year == 2002) || year >= 2003) {
+			filetype = "html"
+			if((number < 49 || number >= 65) && year == 2003) {
+				filetype = "htm"
+			}
+			return "http://oi.uwoj.wroc.pl/dzienniki/Dzienniki" + numbers[1] + "/" + numbers[2].padStart(3,"0") + "/" + numbers[3] + "." + filetype;
+		    }
+		    return "http://oi.uwoj.wroc.pl/dzienniki/Dzienniki" + numbers[1] + "/" + numbers[2] + "/" + numbers[3] + "/" + numbers[3] + ".htm";
+		} else { 
+		    return "http://edzienniki.duw.pl/duw/#/legalact/" + no.replace(".", "/");
+		}
 	    }
 	    return "";
 	}
@@ -149,7 +226,8 @@ uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTrack
                 $scope.content.KtoWstrzymujacy = (($scope.content.KtoWstrzymujacy) ? $scope.content.KtoWstrzymujacy.split(",") : null);
                 $scope.content.KtoNieobecny = (($scope.content.KtoNieobecny) ? $scope.content.KtoNieobecny.split(",") : null);
                 $scope.content.Nieobecni = (($scope.content.KtoNieobecny) ? $scope.content.KtoNieobecny.length : 0);
-                $scope.actNo = data.NumerUchwaly;
+                
+		$scope.actNo = data.NumerUchwaly;
                 $scope.showAct = true;
                 $scope.actContentHTML = "";
                 $scope.actAttachmentsHTML = "";
@@ -253,10 +331,12 @@ uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'promiseTrack
             }
         }
 
-    }]).directive('naglSort', function () {
-    return {
-        template: function (elem, attr) {
-            return '<strong><p ng-click="sort(\'' + attr.type + '\')">' + attr.text + '</p></strong>'
+    }]);
+
+    ctrl.directive('naglSort', function () {
+        return {
+            template: function (elem, attr) {
+                return '<strong><p ng-click="sort(\'' + attr.type + '\')">' + attr.text + '</p></strong>'
+            }
         }
-    }
-});
+    });

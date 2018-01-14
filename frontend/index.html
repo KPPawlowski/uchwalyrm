@@ -134,12 +134,13 @@
                         </p>
                     </div>
                     <div ng-show="lexOption == 2">
-                        <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                        <h3>Uchwała Rady Miejskiej w Złotoryi z dnia {{dataPl(content.DataUchwalenia)}} r. {{content.Tytul}}</h3>
+                        <h4>Numer uchwały: {{content.NumerUchwaly}}</h4>
                         <div ng-if="content.AdresPublikacyjny"><div><p><strong>Adres publikacyjny:</strong></p></div><div><p><a href="{{content.AdrPubURL}}">{{content.AdresPublikacyjny}}</a></p></div></div>
                         <div ng-if="content.TekstJednolity"><div><p><strong>Tekst jednolity:</strong></p></div><div><p><a href="{{content.TekstJednURL}}">{{content.TekstJednolity}}</a></p></div></div>
-			<div ng-if="content.Ogloszony"><div><p><strong>Ogłoszony:</strong></p></div><div><p>{{content.Ogloszony}}</p></div></div>
-			<div ng-if="content.WchodziWZycie"><div><p><strong>Wejście w życie:</strong></p></div><div><p>{{content.WchodziWZycie}}</p></div></div>
-			<div ng-if="content.PodstawaPrawna"><div><p><strong>Podstawa prawna:</strong></p></div><div><p>{{content.PodstawaPrawna}}</p></div></div>
+                        <div ng-if="content.Ogloszony"><div><p><strong>Ogłoszony:</strong></p></div><div><p>{{dataPl(content.Ogloszony)}}</p></div></div>
+                        <div ng-if="content.WchodziWZycie"><div><p><strong>Wejście w życie:</strong></p></div><div><p>{{dataPl(content.WchodziWZycie)}}</p></div></div>
+                        <div ng-if="content.PodstawaPrawna"><div><p><strong>Podstawa prawna:</strong></p></div><div><p>{{content.PodstawaPrawna}}</p></div></div>
                         <div ng-if="content.RNAU"><div><p><strong>Rozstrzygnięcie nadzorcze/akt derogujący:</strong></p></div><div><p>{{content.RNAU}}</p></div></div>
                         <div ng-if="content.ZmienionaPrzez[0]"><div><p><strong>Zmieniona przez uchwałę:</strong></p></div><div><p ng-repeat="row in content.ZmienionaPrzez" ng-click="openAct(row[0])">{{row[0]}}</p></div></div>
                         <div ng-if="content.UchylonaPrzez[0]"><div><p><strong>Uchylona przez uchwałę:</strong></p></div><div><p ng-repeat="row in content.UchylonaPrzez" ng-click="openAct(row[0])">{{row[0]}}</p></div></div>
@@ -148,7 +149,8 @@
                         <div ng-if="content.Tagi"><div><p><strong>Tagi:</strong></p></div><div><p ng-repeat="row in content.Tagi" ng-click="changeSearch(row)">{{row}}</p></div></div>	
                     </div>
                     <div ng-show="lexOption == 3">
-                        <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
+                        <h3>Uchwała Rady Miejskiej w Złotoryi z dnia {{dataPl(content.DataUchwalenia)}} r. {{content.Tytul}}</h3>
+			<h4>Numer uchwały: {{content.NumerUchwaly}}</h4>
                         <div ng-if="content.Za"><div><p><strong>Za ({{content.Za}})</strong></p></div>
                             <div><p ng-repeat="row in content.KtoZa">{{row}}</p></div></div>
                         <div ng-if="content.Przeciw > 0"><p><div><strong>Przeciw ({{content.Przeciw}})</strong></p></div><div><p ng-repeat="row in content.KtoPrzeciw">{{row}}</p></div></div>
@@ -157,15 +159,17 @@
         </div>
         <div ng-show="lexOption == 5">
             <p>
-                <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
-                <div ng-bind-html="actProtocolHTML"></div>
+	    <h3>Uchwała Rady Miejskiej w Złotoryi z dnia {{dataPl(content.DataUchwalenia)}} r. {{content.Tytul}}</h3>
+		<h4>Numer uchwały: {{content.NumerUchwaly}}</h4>
+		<div ng-bind-html="actProtocolHTML"></div>
                 <div ng-bind-html="actProtocolAttachmentsHTML"></div>
             </p>
         </div>
         <div ng-show="lexOption == 4">
             <p>
-                <h3>Uchwała {{content.NumerUchwaly}} z dnia {{content.DataUchwalenia}} {{content.Tytul}}</h3>
-                <p style="white-space:pre-wrap;">{{content.Uzasadnienie}}</p>
+                    <h3>Uchwała Rady Miejskiej w Złotoryi z dnia {{dataPl(content.DataUchwalenia)}} r. {{content.Tytul}}</h3>
+		<h4>Numer uchwały: {{content.NumerUchwaly}}</h4>
+		<p style="white-space:pre-wrap;">{{content.Uzasadnienie}}</p>
             </p>
         </div>
 
