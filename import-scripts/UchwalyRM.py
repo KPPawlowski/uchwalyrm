@@ -89,14 +89,14 @@ class UchwalyRM(IActLawBase):
         act = UchwalaDetails()
         act.get_url(p_act_url)
         self.execute_sql(self.database_connection,
-                         "UPDATE Uchwaly SET WchodziWZycieTekst = %s, Wykonujacy = %s WHERE NumerUchwaly = %s",
+                         "UPDATE Uchwaly SET WchodziWZycieTekst = %s, Wykonujacy = %s WHERE NumerUchwaly = %s AND WchodziWZycieTekst IS NULL",
                           (act.WejscieWZycie, act.Wykonujacy, p_act_number))
         self.execute_sql(self.database_connection,
                          "UPDATE UchwalyPodstawaPrawna SET PodstawaPrawna = %s WHERE NumerUchwaly = %s",
                           (act.PodstawaPrawna, p_act_number))
         if act.ZDniemPodjecia:
             self.execute_sql(self.database_connection,
-                            "UPDATE Uchwaly SET WchodziWZycie = %s WHERE NumerUchwaly = %s",
+                            "UPDATE Uchwaly SET WchodziWZycie = %s WHERE NumerUchwaly = %s AND WchodziWZycie IS NULL",
                             (p_act_date, p_act_number))
 
     ## Dodaje link do uchwały do bazy danych
@@ -165,15 +165,18 @@ class UchwalyRM(IActLawBase):
 
         act_detail = UchwalyRM.get_act_details(p_connection, p_case_number, p_parent)
         date_start = datetime.datetime.strptime(p_publication_date[0:10], '%Y-%m-%d')
+        date_add = -300000
 
-        if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0):
-            date_start = act_detail['DataUchwalenia']
-            date_add = 0
-        elif act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0:
-            if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
-                date_add = 15
-            elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
-                data_add = 31
+        if act_detail.get('WchodziWZycieTekst') is not None:
+            if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not \
+                    (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji') >= 0):
+                date_start = act_detail['DataUchwalenia']
+                date_add = 0
+            elif (act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji')):
+                if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
+                    date_add = 15
+                elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
+                    data_add = 31
 
         if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL " + str(date_add) + " DAY, AdresPublikacyjny = %s "
                                                "WHERE NumerUchwaly = %s", (p_publication_date[0:10], date_start.strftime('%Y-%m-%d'), "DZ. URZ. WOJ. " \

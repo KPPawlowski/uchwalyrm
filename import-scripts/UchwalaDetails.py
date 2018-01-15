@@ -1,6 +1,9 @@
 import requests
 import re
 
+def remove_multiple_spaces(input):
+    return str.join(" ", input.replace("&nbsp;", " ").split())
+
 class UchwalaDetails():
     def __init__(self):
         self.WejscieWZycie = ""
@@ -22,15 +25,19 @@ class UchwalaDetails():
         self.__set_fields()
 
     def __substract_act(self):
+        result = []
         content = self.content.replace("&oacute;", "ó").replace("\n", " ").replace("\t", " ").replace("\r", " ").replace("<br />", "\n").replace("</p>", "\n")
         r1 = re.compile("<div class=\"doc-body\">(.*?)</div>", re.DOTALL)
         act_content = r1.findall(content)[0]
-        return re.sub('<[^<]+?>', '', act_content).strip().split("\n")
+        for item in re.sub('<[^<]+?>', '', act_content).strip().split("\n"):
+            if item.strip():
+                result.append(item.strip())
+        return result
 
     def __set_fields(self):
         i = 0
         for item in self.act_table:
-            current_item = item.strip()
+            current_item = remove_multiple_spaces(item.strip())
             if i == 0:
                 self.NumerUchwaly = current_item.split(" ")[-1]
             elif i == 2:
@@ -47,7 +54,7 @@ class UchwalaDetails():
                 if wykonujacy.find("Burmistrzowi") >= 0:
                     wykonujacy = "Burmistrz"
                 elif wykonujacy.find("Przewodniczącemu") >= 0:
-                    wykonujacy = "Przewodniczący"        
+                    wykonujacy = "Przewodniczący"
                 self.Wykonujacy = wykonujacy
             elif current_item.lower().rfind("wchodzi w życie") >= 0:
                 it = current_item.lower().rfind("wchodzi w życie")
@@ -55,7 +62,7 @@ class UchwalaDetails():
                 if wejscie.find("z dniem podjęcia") >= 0:
                     self.ZDniemPodjecia = True
                     self.Ogloszenie = False
-                elif wejscie.find("po upływie") >= 0 and wejscie.find("ogłoszenia") >= 0:
+                elif wejscie.find("po upływie") >= 0 and (wejscie.find("ogłoszenia") >= 0 or wejscie.find("publikacji") >= 0):
                     self.Ogloszenie = True
                     if wejscie.find("14 dni") >= 0:
                         self.OgloszenieUplywDni = 14
