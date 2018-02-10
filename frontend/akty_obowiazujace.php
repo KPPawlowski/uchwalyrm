@@ -35,7 +35,7 @@
 
     }
 
-    $db = new PDO("mysql:host=localhost;dbname=uchwalyrm; port=3306", 'uchwalyrm', '');
+    $db = new PDO("mysql:host=localhost;dbname=uchwalyrm; port=3306", 'uchwalyrm', 'DBPASS');
     $db->query("SET CHARACTER SET utf8");
     $db->query("SET NAMES utf8");
     $sth = $db->prepare("SELECT * FROM AktyPrawaMiejscowegoPierwotne WHERE Uchylony IS NULL");

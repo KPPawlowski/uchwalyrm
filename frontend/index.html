@@ -146,7 +146,8 @@
                         <div ng-if="content.UchylonaPrzez[0]"><div><p><strong>Uchylona przez uchwałę:</strong></p></div><div><p ng-repeat="row in content.UchylonaPrzez" ng-click="openAct(row[0])">{{row[0]}}</p></div></div>
                         <div ng-if="content.ZmieniaUchwale"><div><p><strong>Zmienia uchwałę:</strong></p></div><div><p ng-repeat="row in content.ZmieniaUchwale" ng-click="openAct(row)">{{row}}</p></div></div>
                         <div ng-if="content.UchylaUchwale"><div><p><strong>Uchyla uchwałę:</strong></p></div><div><p ng-repeat="row in content.UchylaUchwale" ng-click="openAct(row)">{{row}}</p></div></div>
-                        <div ng-if="content.Tagi"><div><p><strong>Tagi:</strong></p></div><div><p ng-repeat="row in content.Tagi" ng-click="changeSearch(row)">{{row}}</p></div></div>	
+                        <div ng-if="content.Tagi"><div><p><strong>Tagi:</strong></p></div><div><p ng-repeat="row in content.Tagi" ng-click="changeSearch(row)">{{row}}</p></div></div>
+                        <div ng-if="content.Opis"><div><p><strong>Opis:</strong></p></div><div>{{content.Opis}}</div></div>	
                     </div>
                     <div ng-show="lexOption == 3">
                         <h3>Uchwała Rady Miejskiej w Złotoryi z dnia {{dataPl(content.DataUchwalenia)}} r. {{content.Tytul}}</h3>
