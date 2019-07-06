@@ -11,6 +11,10 @@ import datetime
 from IActLawBase import *
 from UchwalaDetails import *
 
+class NoActFoundException(Exception):
+    def __init__(self, p_act_no):
+        print("Nie znaleziono uchwały nr " + p_act_no)
+
 ## Klasa do obsługi ostatnich uchwał i protokołów z BIP UM w Złotoryi
 #
 # @related IActLawBase
@@ -49,7 +53,7 @@ class UchwalyRM(IActLawBase):
     # @param p_page Strona, z której pobieramy
     def get_acts_list(self, p_page=1):
         acts_list_request = requests.get("%sindex.php" % self.site_url,
-                                         params={'idmp': '325',
+                                         params={'idmp': '341',
                                                  'r': 'o',
                                                  'istr': str(p_page)})
         self.acts_list[p_page] = self.acts_links_regular_expression.findall(acts_list_request.text)
@@ -163,32 +167,38 @@ class UchwalyRM(IActLawBase):
         if not p_parent:
             p_parent = self
 
-        act_detail = UchwalyRM.get_act_details(p_connection, p_case_number, p_parent)
-        date_start = datetime.datetime.strptime(p_publication_date[0:10], '%Y-%m-%d')
-        date_add = -300000
+        try:
+            act_detail = UchwalyRM.get_act_details(p_connection, p_case_number, p_parent)
+            date_start = datetime.datetime.strptime(p_publication_date[0:10], '%Y-%m-%d')
+            date_add = -300000
 
-        if act_detail.get('WchodziWZycieTekst') is not None:
-            if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not \
-                    (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji') >= 0):
-                date_start = act_detail['DataUchwalenia']
-                date_add = 0
-            elif (act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji')):
-                if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
-                    date_add = 15
-                elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
-                    data_add = 31
+            if act_detail.get('WchodziWZycieTekst') is not None:
+                if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not \
+                        (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji') >= 0):
+                    date_start = act_detail['DataUchwalenia']
+                    date_add = 0
+                elif (act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji')):
+                    if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
+                        date_add = 15
+                    elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
+                        data_add = 31
 
-        if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL " + str(date_add) + " DAY, AdresPublikacyjny = %s "
-                                               "WHERE NumerUchwaly = %s", (p_publication_date[0:10], date_start.strftime('%Y-%m-%d'), "DZ. URZ. WOJ. " \
-                                               + str(p_year) + "." + str(p_position), p_case_number)):
-            p_parent.log("Zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
-        else:
-            p_parent.log("Nie zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
+            if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL " + str(date_add) + " DAY, AdresPublikacyjny = %s "
+                                                   "WHERE NumerUchwaly = %s", (p_publication_date[0:10], date_start.strftime('%Y-%m-%d'), "DZ. URZ. WOJ. " \
+                                                   + str(p_year) + "." + str(p_position), p_case_number)):
+                p_parent.log("Zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
+            else:
+                p_parent.log("Nie zaaktualizowano DZ. URZ. WOJ. %s.%s" % (str(p_position), str(p_year)))
+        except NoActFoundException:
+            None
 
     @staticmethod
     def get_act_details(p_connection, p_act_number, p_parent=None):
         if not p_parent:
             p_parent = self
         result = p_parent.select_sql(p_connection, 
-                                     "SELECT * FROM Uchwaly WHERE NumerUchwaly = '" + p_act_number + "'")
-        return result[0]
+                                     "SELECT * FROM Uchwaly WHERE NumerUchwaly LIKE '%" + p_act_number + "%'")
+        try:
+            return result[0]
+        except IndexError:
+            raise NoActFoundException(p_act_number)

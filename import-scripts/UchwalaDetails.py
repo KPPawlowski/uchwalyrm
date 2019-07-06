@@ -46,7 +46,11 @@ class UchwalaDetails():
                 self.Tytul = current_item
             elif current_item.find("Na podstawie") == 0:
                 it_b = current_item.find("Na podstawie")
-                it_e = current_item.rfind("Rada Miejska")
+                it_e = current_item.rfind("uchwala się")
+                if not it_e:
+                    it_e = current_item.rfind("Rada Miejska uchwala")
+                    if not it_e:
+                        it_e = current_item.rfind("Rada Miejska w Złotoryi uchwala")
                 self.PodstawaPrawna = current_item[it_b+13:it_e]
             elif current_item.lower().find("wykonanie uchwały") and current_item.lower().find("powierza się") >= 0:
                 it = current_item.lower().rfind("powierza się")
