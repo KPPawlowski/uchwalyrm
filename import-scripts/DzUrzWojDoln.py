@@ -20,7 +20,7 @@ class DzUrzWojDoln(IActLawBase):
     # Ustawia nagłówki połączenia, wartość tokena, podstawowe zmienne
     def __init__(self):
         super(IActLawBase, self).__init__()
-        self.url = "http://edzienniki.duw.pl/duw"
+        self.url = "https://edzienniki.duw.pl"
         self.headers = {'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
                                       "Chrome/55.0.2883.87 Safari/537.36", 'Connection': "keep-alive",
                         'Referer': self.url}
@@ -36,13 +36,17 @@ class DzUrzWojDoln(IActLawBase):
     #
     # Metoda pobiera token wymagany przez API do uzyskania JSON i ustawia go nagłówku HTTP
     def get_token(self):
-        token_request = requests.get(url=self.url + "/#/actbymonths", headers=self.headers)
+        token_request = requests.get(url=self.url + "/actbymonths", headers=self.headers)
+        cookies_dict = token_request.cookies.get_dict()
+        antiforgery = ".AspNetCore.Antiforgery.AZ0RnzC4tyE"
+        xsrf_token = "XSRF-TOKEN"
+        self.headers['Cookie'] = "{0}={1}; {2}={3}".format(antiforgery, cookies_dict[antiforgery], xsrf_token, cookies_dict[xsrf_token])
         token_value_regular_expression = re.compile("\"CacheSession\":\"(.*?)\",\"AntiForgeryToken\":\"(.*?)\"")
         token = token_value_regular_expression.findall(token_request.text)[0]
         self.csession = token[0]
         self.auth_code = token[1]
         self.headers['RequestVerificationToken'] = "authentication" + self.auth_code
-        return token
+        self.headers['XSRF-TOKEN'] = cookies_dict['XSRF-TOKEN']
 
     ## Pobranie zawartości dziennika w JSON
     #
@@ -62,6 +66,8 @@ class DzUrzWojDoln(IActLawBase):
         json_request = requests.get(url=self.url + "/api/positions",
                                     params=params,
                                     headers=headers)
+        if json_request.status_code == 403:
+            raise Exception(str(json_request.text))
         json_object = json_request.json()
         year, month = json_object['Year'], json_object['Month']
         if not self.results.get(year):
@@ -92,7 +98,7 @@ class DzUrzWojDoln(IActLawBase):
                 pdf_book_url_list_url, pdf_book_url_list_name = i_position_item.get("PdfBookUrlList")[0].get("Url"), i_position_item.get("PdfBookUrlList")[0].get("Name")
             for i_publisher_iterator in publishers_list_l:
                 publisher_oid, publisher_name = i_publisher_iterator.get("Oid"), i_publisher_iterator.get("Name")
-                if publisher_oid in (157, 711):
+                if publisher_oid in (157, 711, 959):
                     is_urmz = True
                 if not self.execute_sql(connection, "INSERT INTO DzUrzWojDolnOrgany (Oid, Name, DzUrzWojnDolnOid) VALUES (%s, %s, %s)", (publisher_oid, publisher_name, oid)):
                     self.log("- Nie dodano oznaczen (" + str(publisher_oid) + "," + publisher_name + "," + str(oid) + ")")

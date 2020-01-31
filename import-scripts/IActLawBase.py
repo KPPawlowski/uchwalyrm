@@ -82,6 +82,11 @@ class IActLawBase:
             p_connection.commit()
             cursor.close()
             return False
+        except (mysql.connector.errors.DataError):
+            print("Błąd odczytu")
+            p_connection.commit()
+            cursor.close()
+            return False
         cursor.close()
         return True
 
