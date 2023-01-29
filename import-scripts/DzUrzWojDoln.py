@@ -8,6 +8,7 @@
 import re
 import requests
 import json
+import logging
 from IActLawBase import *
 from UchwalyRM import *
 
@@ -36,15 +37,19 @@ class DzUrzWojDoln(IActLawBase):
     #
     # Metoda pobiera token wymagany przez API do uzyskania JSON i ustawia go nagłówku HTTP
     def get_token(self):
+        logging.info("Pobieranie tokena")
         token_request = requests.get(url=self.url + "/actbymonths", headers=self.headers)
         cookies_dict = token_request.cookies.get_dict()
-        antiforgery = ".AspNetCore.Antiforgery.AZ0RnzC4tyE"
         xsrf_token = "XSRF-TOKEN"
+        for key in cookies_dict:
+            if key.startswith(".AspNetCore.Antiforgery."):
+                antiforgery = key
         self.headers['Cookie'] = "{0}={1}; {2}={3}".format(antiforgery, cookies_dict[antiforgery], xsrf_token, cookies_dict[xsrf_token])
         token_value_regular_expression = re.compile("\"CacheSession\":\"(.*?)\",\"AntiForgeryToken\":\"(.*?)\"")
         token = token_value_regular_expression.findall(token_request.text)[0]
         self.csession = token[0]
         self.auth_code = token[1]
+        logging.debug(f"Token: csession={token[0]}, auth_code={token[1]}, XSRF-TOKEN={cookies_dict['XSRF-TOKEN']}")
         self.headers['RequestVerificationToken'] = "authentication" + self.auth_code
         self.headers['XSRF-TOKEN'] = cookies_dict['XSRF-TOKEN']
 

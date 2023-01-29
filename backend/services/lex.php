@@ -62,19 +62,18 @@ class Lex extends Service {
     }
 
     private function decodeNumber($number) {
-        $number = str_replace(array("'", "\\"), "", $number);
-        $arr_1 = explode("/", $number);
-        $arr_2 = explode(".", $number);
+	$map = ['/' => [2, 0], "." => [3, 1]];
 
-        if (count($arr_2) == 4) {
-            $year = $arr_2[3];
-            $session = $arr_2[1];
-        } else if (count($arr_1) == 3) {
-            $year = $arr_1[2];
-            $session = $arr_1[0];
-        }
+	foreach ($map as $key => $value)
+	{
+	    if (strstr($number, $key))
+	    {
+	        $arr = explode($key, $number);
+                return array($arr[$value[0]], $arr[$value[1]]);
+	    }
+	}
 
-        return array($year, $session);
+	return array($number, 0);
     }
 
     public function executeGetListLexes() {
@@ -169,12 +168,12 @@ class Lex extends Service {
         $sth = $this->db->prepare("SELECT `Uchwaly`.`NumerUchwaly` AS `NumerUchwaly`,`Uchwaly`.`DataUchwalenia` AS `DataUchwalenia`,`Uchwaly`.`Tytul` AS `Tytul`,`Uchwaly`.`TekstJednolity`,`Uchwaly`.`AdresPublikacyjny` AS `AdresPublikacyjny`,`Uchwaly`.`Ogloszony`,`Uchwaly`.`WchodziWZycie`,`UchwalyObowiazywanie`.`Obowiazywanie` AS `Obowiazywanie`,`UchwalyLinki`.`URL` AS `URL`,`UchwalyPodstawaPrawna`.`PodstawaPrawna` AS `PodstawaPrawna`,`UchwalyRNAU`.`RozstrzygniecieNadzorczeAktUchylajacy` AS `RNAU`,`UchwalyZmieniajace`.`ZmieniaUchwale` AS `ZmieniaUchwale`,`UchwalyUchylajace`.`UchylaUchwale` AS `UchylaUchwale`,`UchwalyTagiNS`.`Tagi` AS `Tagi`, `UchwalyOpisy`.`Opis` AS `Opis`, `UchwalyWynikiGlosowan`.`Glosowalo` AS `Glosowalo`,`UchwalyWynikiGlosowan`.`Za` AS `Za`,`UchwalyWynikiGlosowan`.`Przeciw` AS `Przeciw`,`UchwalyWynikiGlosowan`.`Wstrzymujacy` AS `Wstrzymujacy`,`UchwalyWynikiGlosowan`.`KtoZa` AS `KtoZa`,`UchwalyWynikiGlosowan`.`KtoPrzeciw` AS `KtoPrzeciw`,`UchwalyWynikiGlosowan`.`KtoWstrzymujacy` AS `KtoWstrzymujacy`,`UchwalyWynikiGlosowan`.`KtoNieobecny` AS `KtoNieobecny`, `UchwalyProtokoly`.`Link` AS `ProtokolURL`, `Uchwaly`.`Uzasadnienie` AS `Uzasadnienie` FROM `Uchwaly` LEFT JOIN `UchwalyObowiazywanie` ON `Uchwaly`.`NumerUchwaly` = `UchwalyObowiazywanie`.`NumerUchwaly` LEFT JOIN `UchwalyLinki` ON `Uchwaly`.`NumerUchwaly` = `UchwalyLinki`.`NumerUchwaly` LEFT JOIN `UchwalyPodstawaPrawna` ON `Uchwaly`.`NumerUchwaly` = `UchwalyPodstawaPrawna`.`NumerUchwaly` LEFT JOIN `UchwalyRNAU` ON `Uchwaly`.`NumerUchwaly` = `UchwalyRNAU`.`NumerUchwaly` LEFT JOIN `UchwalyTagiNS` ON `Uchwaly`.`NumerUchwaly` = `UchwalyTagiNS`.`NumerUchwaly` LEFT JOIN `UchwalyUchylajace` ON `Uchwaly`.`NumerUchwaly` = `UchwalyUchylajace`.`NumerUchwaly` LEFT JOIN `UchwalyZmieniajace` ON `Uchwaly`.`NumerUchwaly` = `UchwalyZmieniajace`.`NumerUchwaly` LEFT JOIN `UchwalyWynikiGlosowan` ON `Uchwaly`.`NumerUchwaly` = `UchwalyWynikiGlosowan`.`NumerUchwaly` LEFT JOIN `UchwalyProtokoly` ON `UchwalyProtokoly`.`SesjaNr` = :session AND `UchwalyProtokoly`.`SesjaRok` = :year LEFT JOIN `UchwalyOpisy` ON `UchwalyOpisy`.`NumerUchwaly` = `Uchwaly`.`NumerUchwaly` WHERE `Uchwaly`.`NumerUchwaly` = :number");
         $sth->bindParam(':session', $session, PDO::PARAM_STR);
         $sth->bindParam(':number', $number, PDO::PARAM_STR);
-        $sth->bindParam(':year', $year, PDO::PARAM_INT);
+        $sth->bindParam(':year', $year, PDO::PARAM_STR);
         $sth->execute();
 
         $row = $sth->fetch(PDO::FETCH_ASSOC);
         if ($row)
-            $result = array_merge($row, array("UchylonaPrzez" => $this->showDerogatesLexes($row["NumerUchwaly"]), "ZmienionaPrzez" => $this->showChangesLexes($row["NumerUchwaly"])));
+            $result = array_merge($row, array("UchylonaPrzez" => $this->showDerogatesLexes($row["NumerUchwaly"]), "ZmienionaPrzez" => $this->showChangesLexes($row["NumerUchwaly"]), "Rok" => $year, "Sesja" => $session));
 
         $this->setData($result);
         return $this->setStatusOK();
@@ -236,7 +235,9 @@ class Lex extends Service {
             file_put_contents($filename, file_get_contents("http://zlotoryja.bip.info.pl/$id"));
         }
 
-        $content = change_dz_u_str(file_get_contents($filename));
+	$content = change_dz_u_str(file_get_contents($filename));
+	$content = str_replace("<div id='tr_kom' style='display: none'>", "<div id='tr_kom'>", $content);
+
 
         if (strlen($content))
             $this->setData(array("content" => $content));
@@ -259,7 +260,7 @@ class Lex extends Service {
     protected function showDerogatesLexes($number = "") {
         $result = array();
         $i = 0;
-        $stmt = $this->db->prepare("SELECT `Uchwaly`.`NumerUchwaly`, `Uchwaly`.`DataUchwalenia`, `Uchwaly`.`Tytul` FROM `Uchwaly` LEFT JOIN UchwalyUchylajace ON Uchwaly.NumerUchwaly = UchwalyUchylajace.NumerUchwaly WHERE UchwalyUchylajace.UchylaUchwale REGEXP :number");
+        $stmt = $this->db->prepare("SELECT `Uchwaly`.`NumerUchwaly`, `Uchwaly`.`DataUchwalenia`, `Uchwaly`.`Tytul` FROM `Uchwaly` LEFT JOIN `UchwalyUchylajace` ON `Uchwaly`.`NumerUchwaly` = `UchwalyUchylajace`.`NumerUchwaly` WHERE `UchwalyUchylajace`.`UchylaUchwale` REGEXP :number");
         $number = "(^|, )" . str_replace(array("\"", "\\"), "", $number) . "(,|$)";
         $stmt->bindParam(':number', $number, PDO::PARAM_STR);
         $stmt->execute();

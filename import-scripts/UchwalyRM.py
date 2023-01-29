@@ -8,12 +8,13 @@ import re
 import requests
 import time
 import datetime
+import logging
 from IActLawBase import *
 from UchwalaDetails import *
 
 class NoActFoundException(Exception):
     def __init__(self, p_act_no):
-        print("Nie znaleziono uchwały nr " + p_act_no)
+        logging.warning(f"Nie znaleziono uchwały nr {p_act_no}")
 
 ## Klasa do obsługi ostatnich uchwał i protokołów z BIP UM w Złotoryi
 #
@@ -53,7 +54,7 @@ class UchwalyRM(IActLawBase):
     # @param p_page Strona, z której pobieramy
     def get_acts_list(self, p_page=1):
         acts_list_request = requests.get("%sindex.php" % self.site_url,
-                                         params={'idmp': '341',
+                                         params={'idmp': '380',
                                                  'r': 'o',
                                                  'istr': str(p_page)})
         self.acts_list[p_page] = self.acts_links_regular_expression.findall(acts_list_request.text)
@@ -164,24 +165,30 @@ class UchwalyRM(IActLawBase):
     # @param p_parent Obiekt powiązany z DzUrzWojDoln
     @staticmethod
     def update_dzurz_position(p_connection, p_publication_date, p_year, p_position, p_case_number, p_parent=None):
+        def find_date_start(act_detail_text):
+            z_dniem_podjecia = act_detail_text.find("dniem podjęcia")
+            publikacji = act_detail_text.find("publikacji")
+            ogloszenia = act_detail_text.find("ogłoszenia")
+            uplywie = act_detail_text.find("upływie")
+            if uplywie >= 0 and (ogloszenia >= 0 or publikacji >= 0):
+                dni = act_detail_text.find("dni", uplywie+7)
+                return int(act_detail_text[uplywie+7:dni])+1
+            if z_dniem_podjecia:
+                return 0
+            return -10000000
+
         if not p_parent:
             p_parent = self
 
         try:
             act_detail = UchwalyRM.get_act_details(p_connection, p_case_number, p_parent)
             date_start = datetime.datetime.strptime(p_publication_date[0:10], '%Y-%m-%d')
-            date_add = -300000
+            date_add = 0
 
             if act_detail.get('WchodziWZycieTekst') is not None:
-                if act_detail['WchodziWZycieTekst'].find("z dniem podjęcia") >= 0 or not \
-                        (act_detail['WchodziWZycieTekst'].find('ogłoszenia') >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji') >= 0):
+                date_add = find_date_start(act_detail['WchodziWZycieTekst'])
+                if date_add == 0:
                     date_start = act_detail['DataUchwalenia']
-                    date_add = 0
-                elif (act_detail['WchodziWZycieTekst'].find("ogłoszenia") >= 0 or act_detail['WchodziWZycieTekst'].find('publikacji')):
-                    if act_detail['WchodziWZycieTekst'].find("po upływie 14 dni od") >= 0:
-                        date_add = 15
-                    elif act_detail['WchodziWZycieTekst'].find("po upływie 30 dni od") >= 0:
-                        data_add = 31
 
             if p_parent.execute_sql(p_connection, "UPDATE Uchwaly SET Ogloszony = %s, WchodziWZycie = %s + INTERVAL " + str(date_add) + " DAY, AdresPublikacyjny = %s "
                                                    "WHERE NumerUchwaly = %s", (p_publication_date[0:10], date_start.strftime('%Y-%m-%d'), "DZ. URZ. WOJ. " \

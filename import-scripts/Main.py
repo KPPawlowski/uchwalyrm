@@ -2,28 +2,39 @@
 # coding=utf8
 from ConnectionSettings import *
 import argparse
+import logging
+import datetime
 
 if __name__ == "__main__":
 
     from DzUrzWojDoln import *
     from UchwalyRM import *
 
+    datetime_str = datetime.datetime.now().strftime("%Y%m%d%H%m%s")
+    logging.basicConfig(filename=f"Main{datetime_str}.log",
+                        filemode='a',
+                        level=logging.DEBUG,
+                        format='%(asctime)s [%(levelname)s]: %(message)s',
+                        datefmt='%Y-%m-%d %H:%m:%s')
+
     def execute_duw_service(p_log=True):
         if p_log:
-            print("Wybrano serwis duw")
+            logging.debug("Wybrano serwis duw")
         duwd_object = DzUrzWojDoln()
         duwd_object.log_on = p_log
-        year = 2019
+        year = 2023
         start_month = 1
         end_month = 12
         for i_month in range(start_month, end_month+1):
+            logging.info(f"Pobieranie danych z miesiaca {i_month}")
             duwd_object.get_json(year, i_month)
         for i_month in duwd_object.results.get(year).keys():
+            logging.info(f"Dodanie do bazy danych z miesiaca {i_month} {year}")
             duwd_object.insert_db(year, i_month, "mysql", ConnectionSettings.param_values)
 
     def execute_rmz_service(p_log=True):
         if p_log:
-            print("Wybrano serwis uchwalyRm")
+            logging.debug("Wybrano serwis uchwalyRm")
         urm_object = UchwalyRM('mysql', ConnectionSettings.param_values)
         urm_object.log_on = p_log
 

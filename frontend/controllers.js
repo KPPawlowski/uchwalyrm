@@ -201,7 +201,7 @@ var ctrl = uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'p
 		    }
 		    return "http://oi.uwoj.wroc.pl/dzienniki/Dzienniki" + numbers[1] + "/" + numbers[2] + "/" + numbers[3] + "/" + numbers[3] + ".htm";
 		} else { 
-		    return "http://edzienniki.duw.pl/duw/#/legalact/" + no.replace(".", "/");
+		    return "http://edzienniki.duw.pl/legalact/" + no.replace(".", "/");
 		}
 	    }
 	    return "";
@@ -234,15 +234,20 @@ var ctrl = uchwalyApp.controller('UchwalyCtrl', ['$scope', '$http', 'notify', 'p
 
                 if (data.URL) {
                     $http({url: $scope.controllerURL + 'getFile', method: "POST", data: JSON.stringify({'link': data.URL}), headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'}}).success(function (data) {
-                        var data2 = data.data;
-                        $scope.actContentHTML = angular.element(angular.element(data2.content).find('div.doc-body > div')[0]).html().replace(/[0-9]{4}\.[IXVLMCD]+\.[0-9]+\.[0-9]+/g, function (text) {
+                    var part_of_html = angular.element(data.data.content).find('div.doc-body > div');
+		    select_proper_part_of_html = part_of_html[0];
+		    if (part_of_html[0].textContent.search("UCHWAŁA") < 0)
+		    {
+			select_proper_part_of_html = part_of_html[1];
+		    }
+		    $scope.actContentHTML = angular.element(select_proper_part_of_html).html().replace(/[0-9]{4}\.[IXVLMCD]+\.[0-9]+\.[0-9]+/g, function (text) {
                             var text = '<a target="_blank" href=\'' + $scope.mainURL + '#' + text + '\'><strong>' + text + '</strong></a>';
                             return text;
                         }).replace(/[IXVLMCD]+\/[0-9]+\/[0-9]+/g, function (text) {
                             var text = '<a target="_blank" href=\'' + $scope.mainURL + '#' + text + '\'><strong>' + text + '</strong></a>';
                             return text;
                         });
-                        $scope.actAttachmentsHTML = angular.element(angular.element(data2.content).find('div.doc-attachments')[0]).html().replace(/plik.php\?/g, "http://zlotoryja.bip.info.pl/plik.php?");
+                        $scope.actAttachmentsHTML = angular.element(angular.element(data.data.content).find('div.doc-attachments')[0]).html().replace(/plik.php\?/g, "http://zlotoryja.bip.info.pl/plik.php?");
                     });
                 }
 

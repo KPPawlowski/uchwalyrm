@@ -2,7 +2,7 @@ import requests
 import re
 
 def remove_multiple_spaces(input):
-    return str.join(" ", input.replace("&nbsp;", " ").split())
+    return " ".join(input.replace("&nbsp;", " ").split())
 
 class UchwalaDetails():
     def __init__(self):
@@ -27,8 +27,9 @@ class UchwalaDetails():
     def __substract_act(self):
         result = []
         content = self.content.replace("&oacute;", "ó").replace("\n", " ").replace("\t", " ").replace("\r", " ").replace("<br />", "\n").replace("</p>", "\n")
-        r1 = re.compile("<div class=\"doc-body\">(.*?)</div>", re.DOTALL)
-        act_content = r1.findall(content)[0]
+        r1 = re.compile("<div class=\"doc-body\">(.*?)<div class=\"doc-info\">", re.DOTALL)
+        content_results = r1.findall(content)
+        act_content = content_results[0]
         for item in re.sub('<[^<]+?>', '', act_content).strip().split("\n"):
             if item.strip():
                 result.append(item.strip())

@@ -8,6 +8,7 @@
 import re
 import mysql.connector
 import psycopg2
+import logging
 
 ## Klasa bazowa (interfejs)
 class IActLawBase:
@@ -57,7 +58,7 @@ class IActLawBase:
     #  @endcode
     def log(self, p_text):
         if self.log_on:
-            print(p_text)
+            logging.info(p_text)
 
     ## Wykonanie zapytania SQL
     #
@@ -83,7 +84,7 @@ class IActLawBase:
             cursor.close()
             return False
         except (mysql.connector.errors.DataError):
-            print("Błąd odczytu")
+            logging.warning(f"Błąd odczytu przy zapytaniu {sql} {p_data}")
             p_connection.commit()
             cursor.close()
             return False
